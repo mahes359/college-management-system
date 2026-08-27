@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # =====================================================
+  # DATABASES
+  # =====================================================
+  postgres-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: college_user
+      POSTGRES_PASSWORD: college_password
+      POSTGRES_DB: college_postgres
+    ports:
+      - "5432:5432"
+
+  mariadb-db:
+    image: mariadb:10-jammy
+    environment:
+      MARIADB_USER: college_user
+      MARIADB_PASSWORD: college_password
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: college_mariadb
+    ports:
+      - "3306:3306"
+
+  mongodb-db:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+
+  # =====================================================
+  # EUREKA SERVER
+  # =====================================================
+  eureka-server:
+    build:
+      context: ./eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - PORT=8761
+
+  # =====================================================
+  # DOMAIN SERVICES
+  # =====================================================
+  student-service:
+    build:
+      context: ./student-service
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - STUDENT_DB_URL=jdbc:postgresql://postgres-db:5432/college_postgres
+      - STUDENT_DB_USERNAME=college_user
+      - STUDENT_DB_PASSWORD=college_password
+    depends_on:
+      - eureka-server
+      - postgres-db
+
+  faculty-service:
+    build:
+      context: ./faculty-service
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - FACULTY_MONGODB_URI=mongodb://mongodb-db:27017/college_faculty
+      - FACULTY_DB_NAME=college_faculty
+    depends_on:
+      - eureka-server
+      - mongodb-db
+
+  course-service:
+    build:
+      context: ./course-service
+    ports:
+      - "8083:8083"
+    environment:
+      - PORT=8083
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - COURSE_DB_URL=jdbc:mariadb://mariadb-db:3306/college_mariadb
+      - COURSE_DB_USERNAME=college_user
+      - COURSE_DB_PASSWORD=college_password
+    depends_on:
+      - eureka-server
+      - mariadb-db
+
+  enrollment-service:
+    build:
+      context: ./enrollment-service
+    ports:
+      - "8084:8084"
+    environment:
+      - PORT=8084
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - ENROLLMENT_DB_URL=jdbc:mariadb://mariadb-db:3306/college_mariadb
+      - ENROLLMENT_DB_USERNAME=college_user
+      - ENROLLMENT_DB_PASSWORD=college_password
+    depends_on:
+      - eureka-server
+      - mariadb-db
+
+  exam-service:
+    build:
+      context: ./exam-service
+    ports:
+      - "8085:8085"
+    environment:
+      - PORT=8085
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - EXAM_DB_URL=jdbc:mariadb://mariadb-db:3306/college_mariadb
+      - EXAM_DB_USERNAME=college_user
+      - EXAM_DB_PASSWORD=college_password
+    depends_on:
+      - eureka-server
+      - mariadb-db
+
+  attendance-service:
+    build:
+      context: ./attendance-service
+    ports:
+      - "8086:8086"
+    environment:
+      - PORT=8086
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - ATTENDANCE_DB_URL=jdbc:postgresql://postgres-db:5432/college_postgres
+      - ATTENDANCE_DB_USERNAME=college_user
+      - ATTENDANCE_DB_PASSWORD=college_password
+    depends_on:
+      - eureka-server
+      - postgres-db
+
+  # =====================================================
+  # API GATEWAY
+  # =====================================================
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - student-service
+      - faculty-service
+      - course-service
+      - enrollment-service
+      - exam-service
+      - attendance-service

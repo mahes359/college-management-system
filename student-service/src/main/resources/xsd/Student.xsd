@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://college.com/student"
+        targetNamespace="http://college.com/student"
+        elementFormDefault="qualified">
+
+    <!-- ================================================= -->
+    <!-- CREATE STUDENT -->
+    <!-- ================================================= -->
+
+    <xs:element name="createStudentRequest">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="studentNumber"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="firstName"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="lastName"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="email"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="phone"
+                        type="xs:string"
+                        minOccurs="0"/>
+
+                <xs:element
+                        name="department"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="year"
+                        type="xs:int"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <xs:element name="createStudentResponse">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="student"
+                        type="tns:student"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <!-- ================================================= -->
+    <!-- GET STUDENT -->
+    <!-- ================================================= -->
+
+    <xs:element name="getStudentRequest">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="studentId"
+                        type="xs:long"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <xs:element name="getStudentResponse">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="student"
+                        type="tns:student"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <!-- ================================================= -->
+    <!-- GET ALL STUDENTS -->
+    <!-- ================================================= -->
+
+    <xs:element name="getAllStudentsRequest">
+
+        <xs:complexType>
+
+            <xs:sequence/>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <xs:element name="getAllStudentsResponse">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="students"
+                        type="tns:student"
+                        minOccurs="0"
+                        maxOccurs="unbounded"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <!-- ================================================= -->
+    <!-- UPDATE STUDENT -->
+    <!-- ================================================= -->
+
+    <xs:element name="updateStudentRequest">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="studentId"
+                        type="xs:long"/>
+
+                <xs:element
+                        name="studentNumber"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="firstName"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="lastName"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="email"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="phone"
+                        type="xs:string"
+                        minOccurs="0"/>
+
+                <xs:element
+                        name="department"
+                        type="xs:string"/>
+
+                <xs:element
+                        name="year"
+                        type="xs:int"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <xs:element name="updateStudentResponse">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="student"
+                        type="tns:student"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <!-- ================================================= -->
+    <!-- DELETE STUDENT -->
+    <!-- ================================================= -->
+
+    <xs:element name="deleteStudentRequest">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="studentId"
+                        type="xs:long"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <xs:element name="deleteStudentResponse">
+
+        <xs:complexType>
+
+            <xs:sequence>
+
+                <xs:element
+                        name="success"
+                        type="xs:boolean"/>
+
+                <xs:element
+                        name="message"
+                        type="xs:string"/>
+
+            </xs:sequence>
+
+        </xs:complexType>
+
+    </xs:element>
+
+
+    <!-- ================================================= -->
+    <!-- COMMON STUDENT -->
+    <!-- ================================================= -->
+
+    <xs:complexType name="student">
+
+        <xs:sequence>
+
+            <xs:element
+                    name="id"
+                    type="xs:long"/>
+
+            <xs:element
+                    name="studentNumber"
+                    type="xs:string"/>
+
+            <xs:element
+                    name="firstName"
+                    type="xs:string"/>
+
+            <xs:element
+                    name="lastName"
+                    type="xs:string"/>
+
+            <xs:element
+                    name="email"
+                    type="xs:string"/>
+
+            <xs:element
+                    name="phone"
+                    type="xs:string"
+                    minOccurs="0"/>
+
+            <xs:element
+                    name="department"
+                    type="xs:string"/>
+
+            <xs:element
+                    name="year"
+                    type="xs:int"/>
+
+        </xs:sequence>
+
+    </xs:complexType>
+
+</xs:schema>
