@@ -14,6 +14,6 @@ public interface AttendanceRepository
     boolean existsByStudentIdAndCourseIdAndAttendanceDate(
             Long studentId,
             Long courseId,
-            String attendanceDate
+            java.time.LocalDate attendanceDate
     );
 }
