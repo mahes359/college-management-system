@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<bindings
-        xmlns="https://jakarta.ee/xml/ns/jaxb"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="
-        https://jakarta.ee/xml/ns/jaxb
-        https://jakarta.ee/xml/ns/jaxb/bindingschema_3_0.xsd"
-        version="3.0">
-
+<bindings xmlns="https://jakarta.ee/xml/ns/jaxb"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema"
+          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+          version="3.0">
+    <globalBindings>
+        <xjc:javaType name="java.time.LocalDate" xmlType="xs:date" adapter="com.college.student.config.LocalDateAdapter"/>
+    </globalBindings>
     <bindings schemaLocation="Student.xsd">
-
         <schemaBindings>
-
             <package name="com.college.student.soap"/>
-
         </schemaBindings>
-
     </bindings>
-
 </bindings>

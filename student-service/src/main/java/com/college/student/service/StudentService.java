@@ -1,6 +1,8 @@
 package com.college.student.service;
 
 import com.college.student.entity.Student;
+import com.college.student.exception.DuplicateStudentException;
+import com.college.student.exception.StudentNotFoundException;
 import com.college.student.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,78 +13,75 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
 
-    public StudentService(
-            StudentRepository studentRepository) {
-
+    public StudentService(StudentRepository studentRepository) {
         this.studentRepository = studentRepository;
     }
 
-    // CREATE
     public Student createStudent(Student student) {
-
+        if (studentRepository.existsByStudentNumber(student.getStudentNumber())) {
+            throw new DuplicateStudentException("Student number already exists: " + student.getStudentNumber());
+        }
+        if (studentRepository.existsByEmail(student.getEmail())) {
+            throw new DuplicateStudentException("Email already exists: " + student.getEmail());
+        }
+        if (student.getAdmissionNumber() != null && !student.getAdmissionNumber().isEmpty() 
+            && studentRepository.existsByAdmissionNumber(student.getAdmissionNumber())) {
+            throw new DuplicateStudentException("Admission number already exists: " + student.getAdmissionNumber());
+        }
         return studentRepository.save(student);
     }
 
-    // GET BY ID
     public Student getById(Long id) {
-
         return studentRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Student not found with id: " + id
-                        )
-                );
+                .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + id));
     }
 
-    // GET ALL
     public List<Student> getAllStudents() {
-
         return studentRepository.findAll();
     }
 
-    // UPDATE
-    public Student updateStudent(
-            Long id,
-            Student updatedStudent) {
-
+    public Student updateStudent(Long id, Student updatedStudent) {
         Student existingStudent = getById(id);
 
-        existingStudent.setStudentNumber(
-                updatedStudent.getStudentNumber()
-        );
+        if (!existingStudent.getStudentNumber().equals(updatedStudent.getStudentNumber()) && 
+            studentRepository.existsByStudentNumber(updatedStudent.getStudentNumber())) {
+            throw new DuplicateStudentException("Student number already exists: " + updatedStudent.getStudentNumber());
+        }
+        
+        if (!existingStudent.getEmail().equals(updatedStudent.getEmail()) && 
+            studentRepository.existsByEmail(updatedStudent.getEmail())) {
+            throw new DuplicateStudentException("Email already exists: " + updatedStudent.getEmail());
+        }
 
-        existingStudent.setFirstName(
-                updatedStudent.getFirstName()
-        );
-
-        existingStudent.setLastName(
-                updatedStudent.getLastName()
-        );
-
-        existingStudent.setEmail(
-                updatedStudent.getEmail()
-        );
-
-        existingStudent.setPhone(
-                updatedStudent.getPhone()
-        );
-
-        existingStudent.setDepartment(
-                updatedStudent.getDepartment()
-        );
-
-        existingStudent.setYear(
-                updatedStudent.getYear()
-        );
+        existingStudent.setStudentNumber(updatedStudent.getStudentNumber());
+        existingStudent.setAdmissionNumber(updatedStudent.getAdmissionNumber());
+        existingStudent.setFirstName(updatedStudent.getFirstName());
+        existingStudent.setLastName(updatedStudent.getLastName());
+        existingStudent.setDateOfBirth(updatedStudent.getDateOfBirth());
+        existingStudent.setGender(updatedStudent.getGender());
+        existingStudent.setEmail(updatedStudent.getEmail());
+        existingStudent.setPhone(updatedStudent.getPhone());
+        existingStudent.setAddress(updatedStudent.getAddress());
+        existingStudent.setCity(updatedStudent.getCity());
+        existingStudent.setState(updatedStudent.getState());
+        existingStudent.setCountry(updatedStudent.getCountry());
+        existingStudent.setBloodGroup(updatedStudent.getBloodGroup());
+        existingStudent.setParentGuardianInfo(updatedStudent.getParentGuardianInfo());
+        existingStudent.setEmergencyContact(updatedStudent.getEmergencyContact());
+        existingStudent.setDepartment(updatedStudent.getDepartment());
+        existingStudent.setProgram(updatedStudent.getProgram());
+        existingStudent.setYear(updatedStudent.getYear());
+        existingStudent.setSemester(updatedStudent.getSemester());
+        existingStudent.setSection(updatedStudent.getSection());
+        existingStudent.setAdmissionDate(updatedStudent.getAdmissionDate());
+        existingStudent.setStudentStatus(updatedStudent.getStudentStatus());
+        existingStudent.setProfileInformation(updatedStudent.getProfileInformation());
 
         return studentRepository.save(existingStudent);
     }
 
-    // DELETE
     public void deleteStudent(Long id) {
-
         Student student = getById(id);
-
         studentRepository.delete(student);
     }
 }

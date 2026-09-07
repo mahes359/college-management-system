@@ -3,7 +3,6 @@ package com.college.faculty.endpoint;
 import com.college.faculty.entity.Faculty;
 import com.college.faculty.service.FacultyService;
 import com.college.faculty.soap.*;
-
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
@@ -14,253 +13,108 @@ import java.util.List;
 @Endpoint
 public class FacultyEndpoint {
 
-    private static final String NAMESPACE =
-            "http://college.com/faculty";
-
+    private static final String NAMESPACE = "http://college.com/faculty";
     private final FacultyService facultyService;
 
-    public FacultyEndpoint(
-            FacultyService facultyService) {
-
+    public FacultyEndpoint(FacultyService facultyService) {
         this.facultyService = facultyService;
     }
 
-    // =====================================================
-    // CREATE
-    // =====================================================
-
-    @PayloadRoot(
-            namespace = NAMESPACE,
-            localPart = "createFacultyRequest"
-    )
+    @PayloadRoot(namespace = NAMESPACE, localPart = "createFacultyRequest")
     @ResponsePayload
-    public CreateFacultyResponse createFaculty(
-            @RequestPayload CreateFacultyRequest request) {
-
+    public CreateFacultyResponse createFaculty(@RequestPayload CreateFacultyRequest request) {
         Faculty faculty = new Faculty();
+        mapRequestToFaculty(request.getEmployeeNumber(), request.getFirstName(), request.getLastName(), request.getEmail(),
+                request.getPhone(), request.getDepartment(), request.getDesignation(), request.getQualification(),
+                request.getSpecialization(), request.getJoiningDate(), request.getFacultyStatus(), request.getOfficeRoom(),
+                request.getFacultyRole(), faculty);
 
-        faculty.setEmployeeNumber(
-                request.getEmployeeNumber()
-        );
-
-        faculty.setFirstName(
-                request.getFirstName()
-        );
-
-        faculty.setLastName(
-                request.getLastName()
-        );
-
-        faculty.setEmail(
-                request.getEmail()
-        );
-
-        faculty.setPhone(
-                request.getPhone()
-        );
-
-        faculty.setDepartment(
-                request.getDepartment()
-        );
-
-        faculty.setDesignation(
-                request.getDesignation()
-        );
-
-        Faculty savedFaculty =
-                facultyService.createFaculty(faculty);
-
-        CreateFacultyResponse response =
-                new CreateFacultyResponse();
-
-        response.setFaculty(
-                toSoapFaculty(savedFaculty)
-        );
-
+        Faculty savedFaculty = facultyService.createFaculty(faculty);
+        CreateFacultyResponse response = new CreateFacultyResponse();
+        response.setFaculty(toSoapFaculty(savedFaculty));
         return response;
     }
 
-    // =====================================================
-    // GET BY ID
-    // =====================================================
-
-    @PayloadRoot(
-            namespace = NAMESPACE,
-            localPart = "getFacultyRequest"
-    )
+    @PayloadRoot(namespace = NAMESPACE, localPart = "getFacultyRequest")
     @ResponsePayload
-    public GetFacultyResponse getFaculty(
-            @RequestPayload GetFacultyRequest request) {
-
-        Faculty faculty =
-                facultyService.getById(
-                        request.getFacultyId()
-                );
-
-        GetFacultyResponse response =
-                new GetFacultyResponse();
-
-        response.setFaculty(
-                toSoapFaculty(faculty)
-        );
-
+    public GetFacultyResponse getFaculty(@RequestPayload GetFacultyRequest request) {
+        Faculty faculty = facultyService.getById(request.getFacultyId());
+        GetFacultyResponse response = new GetFacultyResponse();
+        response.setFaculty(toSoapFaculty(faculty));
         return response;
     }
 
-    // =====================================================
-    // GET ALL
-    // =====================================================
-
-    @PayloadRoot(
-            namespace = NAMESPACE,
-            localPart = "getAllFacultyRequest"
-    )
+    @PayloadRoot(namespace = NAMESPACE, localPart = "getAllFacultyRequest")
     @ResponsePayload
-    public GetAllFacultyResponse getAllFaculty(
-            @RequestPayload GetAllFacultyRequest request) {
-
-        List<Faculty> faculties =
-                facultyService.getAllFaculty();
-
-        GetAllFacultyResponse response =
-                new GetAllFacultyResponse();
-
+    public GetAllFacultyResponse getAllFaculty(@RequestPayload GetAllFacultyRequest request) {
+        List<Faculty> faculties = facultyService.getAllFaculty();
+        GetAllFacultyResponse response = new GetAllFacultyResponse();
         for (Faculty faculty : faculties) {
-
-            response.getFaculty().add(
-                    toSoapFaculty(faculty)
-            );
+            response.getFaculty().add(toSoapFaculty(faculty));
         }
-
         return response;
     }
 
-    // =====================================================
-    // UPDATE
-    // =====================================================
-
-    @PayloadRoot(
-            namespace = NAMESPACE,
-            localPart = "updateFacultyRequest"
-    )
+    @PayloadRoot(namespace = NAMESPACE, localPart = "updateFacultyRequest")
     @ResponsePayload
-    public UpdateFacultyResponse updateFaculty(
-            @RequestPayload UpdateFacultyRequest request) {
-
+    public UpdateFacultyResponse updateFaculty(@RequestPayload UpdateFacultyRequest request) {
         Faculty faculty = new Faculty();
+        mapRequestToFaculty(request.getEmployeeNumber(), request.getFirstName(), request.getLastName(), request.getEmail(),
+                request.getPhone(), request.getDepartment(), request.getDesignation(), request.getQualification(),
+                request.getSpecialization(), request.getJoiningDate(), request.getFacultyStatus(), request.getOfficeRoom(),
+                request.getFacultyRole(), faculty);
 
-        faculty.setEmployeeNumber(
-                request.getEmployeeNumber()
-        );
-
-        faculty.setFirstName(
-                request.getFirstName()
-        );
-
-        faculty.setLastName(
-                request.getLastName()
-        );
-
-        faculty.setEmail(
-                request.getEmail()
-        );
-
-        faculty.setPhone(
-                request.getPhone()
-        );
-
-        faculty.setDepartment(
-                request.getDepartment()
-        );
-
-        faculty.setDesignation(
-                request.getDesignation()
-        );
-
-        Faculty updatedFaculty =
-                facultyService.updateFaculty(
-                        request.getFacultyId(),
-                        faculty
-                );
-
-        UpdateFacultyResponse response =
-                new UpdateFacultyResponse();
-
-        response.setFaculty(
-                toSoapFaculty(updatedFaculty)
-        );
-
+        Faculty updatedFaculty = facultyService.updateFaculty(request.getFacultyId(), faculty);
+        UpdateFacultyResponse response = new UpdateFacultyResponse();
+        response.setFaculty(toSoapFaculty(updatedFaculty));
         return response;
     }
 
-    // =====================================================
-    // DELETE
-    // =====================================================
-
-    @PayloadRoot(
-            namespace = NAMESPACE,
-            localPart = "deleteFacultyRequest"
-    )
+    @PayloadRoot(namespace = NAMESPACE, localPart = "deleteFacultyRequest")
     @ResponsePayload
-    public DeleteFacultyResponse deleteFaculty(
-            @RequestPayload DeleteFacultyRequest request) {
-
-        facultyService.deleteFaculty(
-                request.getFacultyId()
-        );
-
-        DeleteFacultyResponse response =
-                new DeleteFacultyResponse();
-
+    public DeleteFacultyResponse deleteFaculty(@RequestPayload DeleteFacultyRequest request) {
+        facultyService.deleteFaculty(request.getFacultyId());
+        DeleteFacultyResponse response = new DeleteFacultyResponse();
         response.setSuccess(true);
-
-        response.setMessage(
-                "Faculty deleted successfully"
-        );
-
+        response.setMessage("Faculty deleted successfully");
         return response;
     }
 
-    // =====================================================
-    // ENTITY -> SOAP
-    // =====================================================
+    private void mapRequestToFaculty(String employeeNumber, String firstName, String lastName, String email,
+                                     String phone, String department, String designation, String qualification,
+                                     String specialization, java.time.LocalDate joiningDate, String facultyStatus,
+                                     String officeRoom, String facultyRole, Faculty faculty) {
+        faculty.setEmployeeNumber(employeeNumber);
+        faculty.setFirstName(firstName);
+        faculty.setLastName(lastName);
+        faculty.setEmail(email);
+        faculty.setPhone(phone);
+        faculty.setDepartment(department);
+        faculty.setDesignation(designation);
+        faculty.setQualification(qualification);
+        faculty.setSpecialization(specialization);
+        faculty.setJoiningDate(joiningDate);
+        faculty.setFacultyStatus(facultyStatus);
+        faculty.setOfficeRoom(officeRoom);
+        faculty.setFacultyRole(facultyRole);
+    }
 
-    private com.college.faculty.soap.Faculty
-    toSoapFaculty(Faculty faculty) {
-
-        com.college.faculty.soap.Faculty soapFaculty =
-                new com.college.faculty.soap.Faculty();
-
+    private com.college.faculty.soap.Faculty toSoapFaculty(Faculty faculty) {
+        com.college.faculty.soap.Faculty soapFaculty = new com.college.faculty.soap.Faculty();
         soapFaculty.setId(faculty.getId());
-
-        soapFaculty.setEmployeeNumber(
-                faculty.getEmployeeNumber()
-        );
-
-        soapFaculty.setFirstName(
-                faculty.getFirstName()
-        );
-
-        soapFaculty.setLastName(
-                faculty.getLastName()
-        );
-
-        soapFaculty.setEmail(
-                faculty.getEmail()
-        );
-
-        soapFaculty.setPhone(
-                faculty.getPhone()
-        );
-
-        soapFaculty.setDepartment(
-                faculty.getDepartment()
-        );
-
-        soapFaculty.setDesignation(
-                faculty.getDesignation()
-        );
-
+        soapFaculty.setEmployeeNumber(faculty.getEmployeeNumber());
+        soapFaculty.setFirstName(faculty.getFirstName());
+        soapFaculty.setLastName(faculty.getLastName());
+        soapFaculty.setEmail(faculty.getEmail());
+        soapFaculty.setPhone(faculty.getPhone());
+        soapFaculty.setDepartment(faculty.getDepartment());
+        soapFaculty.setDesignation(faculty.getDesignation());
+        soapFaculty.setQualification(faculty.getQualification());
+        soapFaculty.setSpecialization(faculty.getSpecialization());
+        soapFaculty.setJoiningDate(faculty.getJoiningDate());
+        soapFaculty.setFacultyStatus(faculty.getFacultyStatus());
+        soapFaculty.setOfficeRoom(faculty.getOfficeRoom());
+        soapFaculty.setFacultyRole(faculty.getFacultyRole());
         return soapFaculty;
     }
 }
