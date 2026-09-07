@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -187,7 +187,7 @@
             fields: [{name: "enrollmentCode", label: "Enrollment Code", type: "text"}, {name: "studentId", label: "Student ID", type: "number"}, {name: "courseId", label: "Course ID", type: "number"}, {name: "semester", label: "Semester", type: "number"}, {name: "status", label: "Status", type: "text"}]
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
+                document.addEventListener('DOMContentLoaded', () => {
             renderForm();
             renderTableHeaders();
             loadData();
@@ -198,10 +198,10 @@
             CFG.fields.forEach(f => {
                 const group = document.createElement('div');
                 group.className = 'form-group';
-                group.innerHTML = 
-                    <label for=""></label>
-                    <input type="" id="" name="" required>
-                ;
+                group.innerHTML = `
+                    <label for="${f.name}">${f.label}</label>
+                    <input type="${f.type}" id="${f.name}" name="${f.name}" required>
+                `;
                 container.appendChild(group);
             });
             
@@ -219,7 +219,7 @@
                 await createRecord(formData);
                 
                 btn.disabled = false;
-                btn.innerText = Save ;
+                btn.innerText = `Save ${CFG.entityName}`;
             });
         }
 
@@ -236,21 +236,20 @@
         function showNotification(msg, type) {
             const n = document.getElementById('notification');
             n.innerText = msg;
-            n.className = 
-otification show ;
+            n.className = `notification show ${type}`;
             setTimeout(() => n.className = 'notification', 3000);
         }
 
         async function sendSoap(requestName, payload) {
-            const envelope = <?xml version="1.0" encoding="utf-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="">
+            const envelope = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="${CFG.ns}">
    <soapenv:Header/>
    <soapenv:Body>
-      <tns:>
-         
-      </tns:>
+      <tns:${requestName}>
+         ${payload}
+      </tns:${requestName}>
    </soapenv:Body>
-</soapenv:Envelope>;
+</soapenv:Envelope>`;
 
             try {
                 const response = await fetch('/ws', {
@@ -260,7 +259,7 @@ otification show ;
                 });
                 
                 if (!response.ok) {
-                    throw new Error(HTTP Error: );
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
                 
                 const text = await response.text();
@@ -283,7 +282,7 @@ otification show ;
                 let nodes = [];
                 const allElements = xml.getElementsByTagName('*');
                 for (let i = 0; i < allElements.length; i++) {
-                    if (allElements[i].localName === CFG.pluralCamel || allElements[i].localName === CFG.entityCamel) {
+                    if (allElements[i].localName === CFG.pluralCamel || allElements[i].localName === CFG.entityCamel || allElements[i].localName === CFG.entityCamel + 's' || allElements[i].localName === 'faculties') {
                         if (!allElements[i].localName.includes('Response')) {
                             nodes.push(allElements[i]);
                         }
@@ -308,14 +307,14 @@ otification show ;
                         };
                         
                         const id = getText('id') || 'N/A';
-                        tr.innerHTML = <td></td>;
+                        tr.innerHTML = `<td>${id}</td>`;
                         
                         CFG.fields.forEach(f => {
-                            tr.innerHTML += <td></td>;
+                            tr.innerHTML += `<td>${getText(f.name)}</td>`;
                         });
                         
                         const actionTd = document.createElement('td');
-                        actionTd.innerHTML = <button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto;" onclick="deleteRecord('')">Delete</button>;
+                        actionTd.innerHTML = `<button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto;" onclick="deleteRecord('${id}')">Delete</button>`;
                         tr.appendChild(actionTd);
                         
                         tbody.appendChild(tr);
@@ -332,12 +331,12 @@ otification show ;
         async function createRecord(data) {
             let payload = '';
             CFG.fields.forEach(f => {
-                payload += <tns:></tns:>\n;
+                payload += `<tns:${f.name}>${data[f.name]}</tns:${f.name}>\n`;
             });
             
             try {
-                await sendSoap(createRequest, payload);
-                showNotification(${CFG.entityName} created successfully!, "success");
+                await sendSoap(`create${CFG.entityName}Request`, payload);
+                showNotification(`${CFG.entityName} created successfully!`, "success");
                 document.getElementById('createForm').reset();
                 loadData();
             } catch (err) {
@@ -346,14 +345,14 @@ otification show ;
         }
 
         async function deleteRecord(id) {
-            if (!confirm(Are you sure you want to delete  ID ?)) return;
+            if (!confirm(`Are you sure you want to delete ID ${id}?`)) return;
             
             try {
                 const idField = CFG.entityCamel + 'Id';
-                const payload = <tns:></tns:>;
+                const payload = `<tns:${idField}>${id}</tns:${idField}>`;
                 
-                await sendSoap(deleteRequest, payload);
-                showNotification(${CFG.entityName} deleted successfully!, "success");
+                await sendSoap(`delete${CFG.entityName}Request`, payload);
+                showNotification(`${CFG.entityName} deleted successfully!`, "success");
                 loadData();
             } catch (err) {
                 showNotification("Failed to delete record", "error");
