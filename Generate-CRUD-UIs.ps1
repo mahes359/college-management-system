@@ -1,9 +1,85 @@
-﻿<!DOCTYPE html>
+$services = @(
+    @{
+        Name = "student-service"
+        Title = "Student Service"
+        Namespace = "http://college.com/student"
+        Entity = "Student"
+        PluralEntity = "Students"
+        EntityCamel = "student"
+        PluralCamel = "students"
+        GetAllRequest = "getAllStudentsRequest"
+        Icon = "<path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M12 14l9-5-9-5-9 5 9 5z`" /><path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z`" /><path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222`" />"
+        Fields = '[{name: "studentNumber", label: "Student Number", type: "text"}, {name: "firstName", label: "First Name", type: "text"}, {name: "lastName", label: "Last Name", type: "text"}, {name: "email", label: "Email", type: "email"}, {name: "phone", label: "Phone", type: "text"}, {name: "department", label: "Department", type: "text"}, {name: "year", label: "Year", type: "number"}]'
+    },
+    @{
+        Name = "course-service"
+        Title = "Course Service"
+        Namespace = "http://college.com/course"
+        Entity = "Course"
+        PluralEntity = "Courses"
+        EntityCamel = "course"
+        PluralCamel = "courses"
+        GetAllRequest = "getAllCoursesRequest"
+        Icon = "<path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253`" />"
+        Fields = '[{name: "courseCode", label: "Course Code", type: "text"}, {name: "courseName", label: "Course Name", type: "text"}, {name: "description", label: "Description", type: "text"}, {name: "department", label: "Department", type: "text"}, {name: "credits", label: "Credits", type: "number"}, {name: "semester", label: "Semester", type: "number"}]'
+    },
+    @{
+        Name = "attendance-service"
+        Title = "Attendance Service"
+        Namespace = "http://college.com/attendance"
+        Entity = "Attendance"
+        PluralEntity = "Attendance"
+        EntityCamel = "attendance"
+        PluralCamel = "attendance"
+        GetAllRequest = "getAllAttendanceRequest"
+        Icon = "<path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4`" />"
+        Fields = '[{name: "attendanceCode", label: "Attendance Code", type: "text"}, {name: "studentId", label: "Student ID", type: "number"}, {name: "courseId", label: "Course ID", type: "number"}, {name: "attendanceDate", label: "Date (YYYY-MM-DD)", type: "date"}, {name: "status", label: "Status (Present/Absent)", type: "text"}]'
+    },
+    @{
+        Name = "enrollment-service"
+        Title = "Enrollment Service"
+        Namespace = "http://college.com/enrollment"
+        Entity = "Enrollment"
+        PluralEntity = "Enrollments"
+        EntityCamel = "enrollment"
+        PluralCamel = "enrollments"
+        GetAllRequest = "getAllEnrollmentsRequest"
+        Icon = "<path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z`" />"
+        Fields = '[{name: "enrollmentCode", label: "Enrollment Code", type: "text"}, {name: "studentId", label: "Student ID", type: "number"}, {name: "courseId", label: "Course ID", type: "number"}, {name: "semester", label: "Semester", type: "number"}, {name: "status", label: "Status", type: "text"}]'
+    },
+    @{
+        Name = "exam-service"
+        Title = "Exam Service"
+        Namespace = "http://college.com/exam"
+        Entity = "Exam"
+        PluralEntity = "Exams"
+        EntityCamel = "exam"
+        PluralCamel = "exams"
+        GetAllRequest = "getAllExamsRequest"
+        Icon = "<path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z`" />"
+        Fields = '[{name: "examCode", label: "Exam Code", type: "text"}, {name: "courseId", label: "Course ID", type: "number"}, {name: "examType", label: "Exam Type", type: "text"}, {name: "examDate", label: "Exam Date", type: "date"}, {name: "semester", label: "Semester", type: "number"}, {name: "totalMarks", label: "Total Marks", type: "number"}]'
+    },
+    @{
+        Name = "faculty-service"
+        Title = "Faculty Service"
+        Namespace = "http://college.com/faculty"
+        Entity = "Faculty"
+        PluralEntity = "Faculty"
+        EntityCamel = "faculty"
+        PluralCamel = "faculty"
+        GetAllRequest = "getAllFacultyRequest"
+        Icon = "<path stroke-linecap=`"round`" stroke-linejoin=`"round`" stroke-width=`"2`" d=`"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z`" />"
+        Fields = '[{name: "employeeNumber", label: "Employee Number", type: "text"}, {name: "firstName", label: "First Name", type: "text"}, {name: "lastName", label: "Last Name", type: "text"}, {name: "email", label: "Email", type: "email"}, {name: "phone", label: "Phone", type: "text"}, {name: "department", label: "Department", type: "text"}, {name: "designation", label: "Designation", type: "text"}]'
+    }
+)
+
+$template = @"
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Service GUI - College Management System</title>
+    <title>{{TITLE}} GUI - College Management System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -135,26 +211,26 @@
     <div class="container">
         <header>
             <div class="icon-container">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">{{ICON}}</svg>
             </div>
             <div>
-                <h1>Faculty Service</h1>
+                <h1>{{TITLE}}</h1>
                 <p class="subtitle">Management Dashboard Endpoint</p>
             </div>
         </header>
 
         <div class="layout">
             <div class="glass-card">
-                <h2>Add Faculty</h2>
+                <h2>Add {{ENTITY}}</h2>
                 <form id="createForm">
                     <div id="formFields"></div>
-                    <button type="submit" class="btn" id="submitBtn">Save Faculty</button>
+                    <button type="submit" class="btn" id="submitBtn">Save {{ENTITY}}</button>
                 </form>
             </div>
 
             <div class="glass-card" style="overflow-x: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="margin-bottom: 0; border: none;">Faculty Directory</h2>
+                    <h2 style="margin-bottom: 0; border: none;">{{PLURAL_ENTITY}} Directory</h2>
                     <button class="btn" style="width: auto; padding: 0.5rem 1rem;" onclick="loadData()">Refresh</button>
                 </div>
                 
@@ -179,12 +255,12 @@
 
     <script>
         const CFG = {
-            ns: "http://college.com/faculty",
-            entityName: "Faculty",
-            entityCamel: "faculty",
-            pluralCamel: "faculty",
-            getAllRequest: "getAllFacultyRequest",
-            fields: [{name: "employeeNumber", label: "Employee Number", type: "text"}, {name: "firstName", label: "First Name", type: "text"}, {name: "lastName", label: "Last Name", type: "text"}, {name: "email", label: "Email", type: "email"}, {name: "phone", label: "Phone", type: "text"}, {name: "department", label: "Department", type: "text"}, {name: "designation", label: "Designation", type: "text"}]
+            ns: "{{NAMESPACE}}",
+            entityName: "{{ENTITY}}",
+            entityCamel: "{{ENTITY_CAMEL}}",
+            pluralCamel: "{{PLURAL_CAMEL}}",
+            getAllRequest: "{{GET_ALL_REQUEST}}",
+            fields: {{FIELDS}}
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -198,10 +274,10 @@
             CFG.fields.forEach(f => {
                 const group = document.createElement('div');
                 group.className = 'form-group';
-                group.innerHTML = 
-                    <label for=""></label>
-                    <input type="" id="" name="" required>
-                ;
+                group.innerHTML = `
+                    <label for="${f.name}">${f.label}</label>
+                    <input type="${f.type}" id="${f.name}" name="${f.name}" required>
+                `;
                 container.appendChild(group);
             });
             
@@ -219,7 +295,7 @@
                 await createRecord(formData);
                 
                 btn.disabled = false;
-                btn.innerText = Save ;
+                btn.innerText = `Save ${CFG.entityName}`;
             });
         }
 
@@ -236,21 +312,20 @@
         function showNotification(msg, type) {
             const n = document.getElementById('notification');
             n.innerText = msg;
-            n.className = 
-otification show ;
+            n.className = `notification show ${type}`;
             setTimeout(() => n.className = 'notification', 3000);
         }
 
         async function sendSoap(requestName, payload) {
-            const envelope = <?xml version="1.0" encoding="utf-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="">
+            const envelope = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="${CFG.ns}">
    <soapenv:Header/>
    <soapenv:Body>
-      <tns:>
-         
-      </tns:>
+      <tns:${requestName}>
+         ${payload}
+      </tns:${requestName}>
    </soapenv:Body>
-</soapenv:Envelope>;
+</soapenv:Envelope>`;
 
             try {
                 const response = await fetch('/ws', {
@@ -260,7 +335,7 @@ otification show ;
                 });
                 
                 if (!response.ok) {
-                    throw new Error(HTTP Error: );
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
                 
                 const text = await response.text();
@@ -308,14 +383,14 @@ otification show ;
                         };
                         
                         const id = getText('id') || 'N/A';
-                        tr.innerHTML = <td></td>;
+                        tr.innerHTML = `<td>${id}</td>`;
                         
                         CFG.fields.forEach(f => {
-                            tr.innerHTML += <td></td>;
+                            tr.innerHTML += `<td>${getText(f.name)}</td>`;
                         });
                         
                         const actionTd = document.createElement('td');
-                        actionTd.innerHTML = <button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto;" onclick="deleteRecord('')">Delete</button>;
+                        actionTd.innerHTML = `<button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; width: auto;" onclick="deleteRecord('${id}')">Delete</button>`;
                         tr.appendChild(actionTd);
                         
                         tbody.appendChild(tr);
@@ -332,12 +407,12 @@ otification show ;
         async function createRecord(data) {
             let payload = '';
             CFG.fields.forEach(f => {
-                payload += <tns:></tns:>\n;
+                payload += `<tns:${f.name}>${data[f.name]}</tns:${f.name}>\n`;
             });
             
             try {
-                await sendSoap(createRequest, payload);
-                showNotification(${CFG.entityName} created successfully!, "success");
+                await sendSoap(`create${CFG.entityName}Request`, payload);
+                showNotification(`${CFG.entityName} created successfully!`, "success");
                 document.getElementById('createForm').reset();
                 loadData();
             } catch (err) {
@@ -346,14 +421,14 @@ otification show ;
         }
 
         async function deleteRecord(id) {
-            if (!confirm(Are you sure you want to delete  ID ?)) return;
+            if (!confirm(`Are you sure you want to delete ${CFG.entityName} ID ${id}?`)) return;
             
             try {
                 const idField = CFG.entityCamel + 'Id';
-                const payload = <tns:></tns:>;
+                const payload = `<tns:${idField}>${id}</tns:${idField}>`;
                 
-                await sendSoap(deleteRequest, payload);
-                showNotification(${CFG.entityName} deleted successfully!, "success");
+                await sendSoap(`delete${CFG.entityName}Request`, payload);
+                showNotification(`${CFG.entityName} deleted successfully!`, "success");
                 loadData();
             } catch (err) {
                 showNotification("Failed to delete record", "error");
@@ -362,3 +437,25 @@ otification show ;
     </script>
 </body>
 </html>
+"@
+
+foreach ($service in $services) {
+    $dir = "$($PWD.Path)\$($service.Name)\src\main\resources\static"
+    if (!(Test-Path $dir)) {
+        New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    }
+    
+    $fileContent = $template -replace '\{\{TITLE\}\}', $service.Title `
+                             -replace '\{\{NAMESPACE\}\}', $service.Namespace `
+                             -replace '\{\{ENTITY\}\}', $service.Entity `
+                             -replace '\{\{PLURAL_ENTITY\}\}', $service.PluralEntity `
+                             -replace '\{\{ENTITY_CAMEL\}\}', $service.EntityCamel `
+                             -replace '\{\{PLURAL_CAMEL\}\}', $service.PluralCamel `
+                             -replace '\{\{GET_ALL_REQUEST\}\}', $service.GetAllRequest `
+                             -replace '\{\{FIELDS\}\}', $service.Fields `
+                             -replace '\{\{ICON\}\}', $service.Icon
+                             
+    $filePath = "$dir\index.html"
+    Set-Content -Path $filePath -Value $fileContent -Encoding UTF8
+    Write-Host "Created CRUD UI for $($service.Name) at $filePath"
+}
