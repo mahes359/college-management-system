@@ -205,9 +205,9 @@
    <soapenv:Body><tns:${reqName}/></soapenv:Body>
 </soapenv:Envelope>`;
             try {
-                // Determine the correct url for the proxy endpoint
-                // Since this file is served from the root of the microservice, a relative URL /proxy/service/ws works perfectly.
-                const url = `/proxy/${service}/ws`;
+                // Using the specific API Gateway URL provided for the Render deployment
+                const GATEWAY_URL = "https://api-gateway-wzqo.onrender.com";
+                const url = `${GATEWAY_URL}/${service}/ws`;
                 
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/xml' }, body: envelope });
                 if(!response.ok) return [];
@@ -231,7 +231,7 @@
                     return { id: getText(extractId), label: extractLabel.map(l => getText(l)).join(' - ') };
                 });
             } catch(e) { 
-                console.error("Failed to fetch cross-service options via backend proxy.", e); 
+                console.error("Failed to fetch cross-service options.", e); 
                 return []; 
             }
         }
