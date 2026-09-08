@@ -192,45 +192,11 @@
                 {name: "status", label: "Status (Present/Absent)", type: "text"}
             ]
         };
-        let GATEWAY_URL = localStorage.getItem('API_GATEWAY_URL') || '';
-
         document.addEventListener('DOMContentLoaded', () => {
             renderForm();
             renderTableHeaders();
             loadData();
-            checkGatewayStatus();
         });
-
-        function checkGatewayStatus() {
-            const currentService = window.location.pathname.split('/')[1];
-            const isAccessedViaGateway = ['student', 'faculty', 'course', 'enrollment', 'attendance', 'exam'].includes(currentService);
-            
-            if (!isAccessedViaGateway) {
-                const banner = document.createElement('div');
-                banner.style = "background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;";
-                
-                banner.innerHTML = `
-                    <div>
-                        <strong style="color: #fca5a5;">⚠️ Direct Access Detected</strong><br>
-                        <span style="font-size: 0.9rem; color: #f8fafc;">You are accessing this service directly. To load dropdowns from other services, please provide your API Gateway URL (e.g. https://api-gateway-xyz.onrender.com)</span>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; flex-grow: 1; max-width: 400px;">
-                        <input type="text" id="gwUrlInput" placeholder="https://..." value="${GATEWAY_URL}" style="padding: 0.5rem; flex-grow: 1;">
-                        <button class="btn" style="width: auto; padding: 0.5rem 1rem;" onclick="saveGatewayUrl()">Save & Reload</button>
-                    </div>
-                `;
-                document.querySelector('header').insertAdjacentElement('afterend', banner);
-            }
-        }
-
-        window.saveGatewayUrl = function() {
-            let url = document.getElementById('gwUrlInput').value.trim();
-            if (url) {
-                if (url.endsWith('/')) url = url.slice(0, -1);
-                localStorage.setItem('API_GATEWAY_URL', url);
-                window.location.reload();
-            }
-        };
 
         async function fetchOptions(service, reqName, ns, extractArray, extractId, extractLabel) {
             const envelope = `<?xml version="1.0" encoding="utf-8"?>
@@ -239,18 +205,10 @@
    <soapenv:Body><tns:${reqName}/></soapenv:Body>
 </soapenv:Envelope>`;
             try {
-                const currentService = window.location.pathname.split('/')[1];
-                const isGateway = ['student', 'faculty', 'course', 'enrollment', 'attendance', 'exam'].includes(currentService);
+                // Determine the correct url for the proxy endpoint
+                // Since this file is served from the root of the microservice, a relative URL /proxy/service/ws works perfectly.
+                const url = `/proxy/${service}/ws`;
                 
-                let url;
-                if (isGateway) {
-                    url = `/${service}/ws`;
-                } else if (GATEWAY_URL) {
-                    url = `${GATEWAY_URL}/${service}/ws`;
-                } else {
-                    throw new Error("No Gateway URL");
-                }
-
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/xml' }, body: envelope });
                 if(!response.ok) return [];
                 const text = await response.text();
@@ -273,7 +231,7 @@
                     return { id: getText(extractId), label: extractLabel.map(l => getText(l)).join(' - ') };
                 });
             } catch(e) { 
-                console.error("Failed to fetch cross-service options.", e); 
+                console.error("Failed to fetch cross-service options via backend proxy.", e); 
                 return []; 
             }
         }
@@ -301,7 +259,7 @@
                             select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
                         });
                         if(options.length === 0) {
-                            select.innerHTML = `<option value="">No data found (Configure Gateway URL above)</option>`;
+                            select.innerHTML = `<option value="">No data found</option>`;
                         }
                     });
                 } else {
@@ -371,9 +329,8 @@
 </soapenv:Envelope>`;
 
             try {
-                const currentService = window.location.pathname.split('/')[1];
-                const isGateway = ['student', 'faculty', 'course', 'enrollment', 'attendance', 'exam'].includes(currentService);
-                const wsUrl = isGateway ? `/${currentService}/ws` : '/ws';
+                // Current service ws is always at relative /ws
+                const wsUrl = '/ws';
                 
                 const response = await fetch(wsUrl, {
                     method: 'POST',
