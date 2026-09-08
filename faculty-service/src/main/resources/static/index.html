@@ -177,33 +177,99 @@
         </div>
     </div>
 
-    <script>
+        <script>
         const CFG = {
             ns: "http://college.com/faculty",
             entityName: "Faculty",
             entityCamel: "faculty",
             pluralCamel: "faculty",
             getAllRequest: "getAllFacultyRequest",
-            fields: [{name: "employeeNumber", label: "Employee Number", type: "text"}, {name: "firstName", label: "First Name", type: "text"}, {name: "lastName", label: "Last Name", type: "text"}, {name: "email", label: "Email", type: "email"}, {name: "phone", label: "Phone", type: "text"}, {name: "department", label: "Department", type: "text"}, {name: "designation", label: "Designation", type: "text"}]
+            fields: [
+                {name: "employeeNumber", label: "Employee Number", type: "text"},
+                {name: "firstName", label: "First Name", type: "text"},
+                {name: "lastName", label: "Last Name", type: "text"},
+                {name: "email", label: "Email", type: "email"},
+                {name: "phone", label: "Phone", type: "text"},
+                {name: "department", label: "Department", type: "text"},
+                {name: "designation", label: "Designation", type: "text"}
+            ]
         };
-
-                document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             renderForm();
             renderTableHeaders();
             loadData();
         });
 
-        function renderForm() {
+        async function fetchOptions(service, reqName, ns, extractArray, extractId, extractLabel) {
+            const envelope = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="${ns}">
+   <soapenv:Header/>
+   <soapenv:Body><tns:${reqName}/></soapenv:Body>
+</soapenv:Envelope>`;
+            try {
+                const url = `/${service}/ws`;
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/xml' }, body: envelope });
+                if(!response.ok) return [];
+                const text = await response.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(text, "text/xml");
+                let nodes = [];
+                const allElements = xml.getElementsByTagName('*');
+                for (let i = 0; i < allElements.length; i++) {
+                    if (extractArray.includes(allElements[i].localName) && !allElements[i].localName.includes('Response')) {
+                        nodes.push(allElements[i]);
+                    }
+                }
+                return nodes.map(node => {
+                    const getText = (tag) => {
+                        for (let i = 0; i < node.childNodes.length; i++) {
+                            if (node.childNodes[i].nodeType === 1 && node.childNodes[i].localName === tag) return node.childNodes[i].textContent;
+                        }
+                        return '';
+                    };
+                    return { id: getText(extractId), label: extractLabel.map(l => getText(l)).join(' - ') };
+                });
+            } catch(e) { 
+                console.error("Failed to fetch cross-service options. Ensure you are accessing this UI via the API Gateway.", e); 
+                return []; 
+            }
+        }
+
+        async function renderForm() {
             const container = document.getElementById('formFields');
-            CFG.fields.forEach(f => {
+            for (let f of CFG.fields) {
                 const group = document.createElement('div');
                 group.className = 'form-group';
-                group.innerHTML = `
-                    <label for="${f.name}">${f.label}</label>
-                    <input type="${f.type}" id="${f.name}" name="${f.name}" required>
-                `;
-                container.appendChild(group);
-            });
+                
+                if (f.type === 'select') {
+                    group.innerHTML = `
+                        <label for="${f.name}">${f.label}</label>
+                        <select id="${f.name}" name="${f.name}" required style="width: 100%; padding: 0.8rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none; appearance: none;">
+                            <option value="">Loading...</option>
+                        </select>
+                    `;
+                    container.appendChild(group);
+                    
+                    fetchOptions(f.sourceService, f.sourceReq, f.sourceNs, f.sourceTags, f.sourceId, f.sourceLabel).then(options => {
+                        const select = document.getElementById(f.name);
+                        select.innerHTML = `<option value="">Select ${f.label}</option>`;
+                        options.forEach(opt => {
+                            select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
+                        });
+                        if(options.length === 0) {
+                            select.innerHTML = `<option value="">No data found (Use API Gateway)</option>`;
+                        }
+                    });
+                } else {
+                    let inputType = f.type;
+                    let stepHtml = inputType === 'number' ? ' step="any"' : '';
+                    group.innerHTML = `
+                        <label for="${f.name}">${f.label}</label>
+                        <input type="${inputType}" id="${f.name}" name="${f.name}" required${stepHtml}>
+                    `;
+                    container.appendChild(group);
+                }
+            }
             
             document.getElementById('createForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -252,14 +318,28 @@
 </soapenv:Envelope>`;
 
             try {
-                const response = await fetch('/ws', {
+                const currentService = window.location.pathname.split('/')[1];
+                const isGateway = ['student', 'faculty', 'course', 'enrollment', 'attendance', 'exam'].includes(currentService);
+                const wsUrl = isGateway ? `/${currentService}/ws` : '/ws';
+                
+                const response = await fetch(wsUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/xml' },
                     body: envelope
                 });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
+                    let errMsg = `HTTP Error: ${response.status}`;
+                    try {
+                        const text = await response.text();
+                        const parser = new DOMParser();
+                        const xml = parser.parseFromString(text, "text/xml");
+                        const faultStrings = xml.getElementsByTagName('faultstring');
+                        if (faultStrings.length > 0) {
+                            errMsg = faultStrings[0].textContent;
+                        }
+                    } catch(e) {}
+                    throw new Error(errMsg);
                 }
                 
                 const text = await response.text();
@@ -322,7 +402,7 @@
                     document.getElementById('dataTable').style.display = 'table';
                 }
             } catch (err) {
-                showNotification("Failed to load data", "error");
+                showNotification(err.message || "Failed to load data", "error");
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
@@ -340,7 +420,7 @@
                 document.getElementById('createForm').reset();
                 loadData();
             } catch (err) {
-                showNotification("Failed to create record", "error");
+                showNotification(err.message || "Failed to create record", "error");
             }
         }
 
@@ -355,7 +435,7 @@
                 showNotification(`${CFG.entityName} deleted successfully!`, "success");
                 loadData();
             } catch (err) {
-                showNotification("Failed to delete record", "error");
+                showNotification(err.message || "Failed to delete record", "error");
             }
         }
     </script>
