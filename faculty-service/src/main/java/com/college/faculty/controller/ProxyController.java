@@ -22,12 +22,20 @@ public class ProxyController {
 
     @PostMapping("/{serviceName}/ws")
     public String proxySoap(@PathVariable String serviceName, @RequestBody String soapEnvelope) {
-        List<ServiceInstance> instances = discoveryClient.getInstances(serviceName.toUpperCase());
+        String lookupName = serviceName.toUpperCase();
+        if (!lookupName.endsWith("-SERVICE")) {
+            lookupName += "-SERVICE";
+        }
+
+        List<ServiceInstance> instances = discoveryClient.getInstances(lookupName);
+        if (instances == null || instances.isEmpty()) {
+            instances = discoveryClient.getInstances(serviceName.toUpperCase());
+        }
         if (instances == null || instances.isEmpty()) {
             instances = discoveryClient.getInstances(serviceName.toLowerCase());
         }
         if (instances == null || instances.isEmpty()) {
-            throw new RuntimeException("Service not available in Eureka: " + serviceName);
+            throw new RuntimeException("Service not available in Eureka: " + lookupName);
         }
         
         ServiceInstance instance = instances.get(0);

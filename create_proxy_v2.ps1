@@ -1,4 +1,19 @@
-package com.college.attendance_service.controller;
+$services = @{
+    "attendance-service" = "com.college.attendance_service"
+    "course-service" = "com.college.course"
+    "enrollment-service" = "com.college.enrollment"
+    "exam-service" = "com.college.exam_service"
+    "faculty-service" = "com.college.faculty"
+    "student-service" = "com.college.student"
+}
+
+foreach ($svc in $services.Keys) {
+    $pkg = $services[$svc]
+    $dir = $pkg.Replace(".", "\")
+    $controllerDir = "e:\CODING\CLOUD COMPUTING\WEBSERVICE\$svc\src\main\java\$dir\controller"
+    
+    $code = @"
+package $pkg.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
@@ -47,4 +62,9 @@ public class ProxyController {
 
         return restTemplate.postForObject(targetUrl, request, String.class);
     }
+}
+"@
+    
+    Set-Content -Path "$controllerDir\ProxyController.java" -Value $code
+    Write-Host "Updated ProxyController in $svc"
 }
