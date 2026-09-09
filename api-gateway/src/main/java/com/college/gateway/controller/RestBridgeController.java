@@ -199,6 +199,18 @@ public class RestBridgeController {
         }
     }
 
+    @GetMapping(value = "/environment", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> getEnvironment() {
+        Map<String, Object> env = new LinkedHashMap<>();
+        boolean isRender = "true".equalsIgnoreCase(System.getenv("RENDER"));
+        env.put("environment", isRender ? "RENDER" : "AZURE");
+        env.put("isRender", isRender);
+        env.put("renderServiceName", System.getenv("RENDER_SERVICE_NAME"));
+        env.put("renderExternalHostname", System.getenv("RENDER_EXTERNAL_HOSTNAME"));
+        env.put("host", System.getenv("HOST") != null ? System.getenv("HOST") : System.getenv("AZURE_HOST"));
+        return ResponseEntity.ok(env);
+    }
+
     // =========================================================================
     // HELPER METHODS: DUAL-ENVIRONMENT RESOLUTION & SOAP DISPATCH
     // =========================================================================
@@ -226,6 +238,9 @@ public class RestBridgeController {
 
         // Azure VM or local VM host
         String host = System.getenv("HOST");
+        if (host == null || host.isEmpty()) {
+            host = System.getenv("AZURE_HOST");
+        }
         if (host == null || host.isEmpty()) {
             host = "localhost";
         }

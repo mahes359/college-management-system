@@ -205,7 +205,11 @@
    <soapenv:Body><tns:${reqName}/></soapenv:Body>
 </soapenv:Envelope>`;
             try {
-                const GATEWAY_URL = "https://api-gateway-wzqo.onrender.com";
+                // Dynamic API Gateway URL: Render Cloud vs Azure VM / Localhost
+                const isRender = window.location.hostname.includes('onrender.com');
+                const GATEWAY_URL = isRender 
+                    ? "https://api-gateway-wzqo.onrender.com" 
+                    : `${window.location.protocol}//${window.location.hostname}:8080`;
                 const url = `${GATEWAY_URL}/${service}/ws`;
 
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/xml' }, body: envelope });

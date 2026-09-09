@@ -746,12 +746,29 @@
 
         <!-- TAB 1: TOPOLOGY & SERVICES -->
         <div id="tab-topology" class="tab-panel active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.3rem; font-weight: 700;">Live Microservices Mesh</h2>
-                <button class="btn-secondary" onclick="refreshMeshHealth()">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    Refresh Latency Pings
-                </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.3rem; font-weight: 700;">Live Microservices Mesh</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">Dynamic routing & service launcher compatible with Render Cloud and Azure VM.</p>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <button class="btn-secondary" onclick="toggleEnvironmentMode()" id="envToggleBtn">Preview Mode</button>
+                    <button class="btn-secondary" onclick="refreshMeshHealth()">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh Latency Pings
+                    </button>
+                </div>
+            </div>
+
+            <!-- DYNAMIC CLOUD ENVIRONMENT INDICATOR -->
+            <div id="envBanner" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="status-dot"></span>
+                    <span id="envBannerTitle" style="font-size: 0.9rem; font-weight: 600; color: #f8fafc;">Active Environment: Detecting...</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem;">
+                    <span id="envBannerDesc" style="color: var(--text-muted);">Launch UI links dynamically adapt to this host</span>
+                </div>
             </div>
 
             <div class="mesh-grid" id="meshGrid">
@@ -1081,16 +1098,86 @@
             if (target) target.classList.add('active');
         }
 
+        // Environment Detection: Render Cloud vs Azure VM / Localhost
+        let manualEnvMode = null; // 'render' | 'azure' | null (auto)
+
+        function isRenderEnvironment() {
+            if (manualEnvMode) return manualEnvMode === 'render';
+            return window.location.hostname.includes('onrender.com');
+        }
+
+        function getAzureHost() {
+            return localStorage.getItem('azure_host_override') || window.location.hostname;
+        }
+
+        function getServiceLaunchUrl(svc) {
+            if (isRenderEnvironment()) {
+                return svc.renderUrl;
+            }
+            const protocol = window.location.protocol;
+            const host = getAzureHost();
+            return `${protocol}//${host}:${svc.port}`;
+        }
+
+        function toggleEnvironmentMode() {
+            const current = isRenderEnvironment();
+            manualEnvMode = current ? 'azure' : 'render';
+            updateEnvironmentDisplay();
+            renderMeshGrid();
+            refreshMeshHealth();
+        }
+
+        function setAzureHostOverride() {
+            const current = getAzureHost();
+            const host = prompt("Enter Azure VM IP or Hostname (leave blank to reset to " + window.location.hostname + "):", current);
+            if (host !== null) {
+                if (host.trim() === '' || host.trim() === window.location.hostname) {
+                    localStorage.removeItem('azure_host_override');
+                } else {
+                    localStorage.setItem('azure_host_override', host.trim());
+                }
+                updateEnvironmentDisplay();
+                renderMeshGrid();
+                refreshMeshHealth();
+            }
+        }
+
+        function updateEnvironmentDisplay() {
+            const isRender = isRenderEnvironment();
+            const bannerTitle = document.getElementById('envBannerTitle');
+            const bannerDesc = document.getElementById('envBannerDesc');
+            const toggleBtn = document.getElementById('envToggleBtn');
+            const envBadge = document.getElementById('envBadge');
+            const host = getAzureHost();
+
+            if (isRender) {
+                if (bannerTitle) bannerTitle.innerHTML = `☁️ Active Mode: <span style="color: #38bdf8;">Render Cloud Production</span>`;
+                if (bannerDesc) bannerDesc.innerHTML = `Launch UI links open direct Render services (<code>*.onrender.com</code>).`;
+                if (toggleBtn) toggleBtn.textContent = `Switch to Azure VM Mode`;
+                if (envBadge) envBadge.innerText = `Cloud: Render Production (HTTPS:443)`;
+            } else {
+                if (bannerTitle) bannerTitle.innerHTML = `⚡ Active Mode: <span style="color: #34d399;">Azure VM / Host Node (${host})</span>`;
+                if (bannerDesc) bannerDesc.innerHTML = `Launch UI links open Azure host port services (<code>${window.location.protocol}//${host}:[port]</code>). <a href="javascript:void(0)" onclick="setAzureHostOverride()" style="color: #38bdf8; text-decoration: underline; margin-left: 0.5rem; font-weight: 600;">Edit Host IP</a>`;
+                if (toggleBtn) toggleBtn.textContent = `Switch to Render Mode`;
+                if (envBadge) envBadge.innerText = `Cloud: Azure VM (${host})`;
+            }
+        }
+
         function renderMeshGrid() {
             const grid = document.getElementById('meshGrid');
             grid.innerHTML = '';
+            const isRender = isRenderEnvironment();
+            const host = getAzureHost();
 
             SERVICES.forEach(svc => {
                 const card = document.createElement('div');
                 card.className = 'mesh-card';
                 card.id = 'mesh-card-' + svc.id;
 
-                const targetUrl = svc.path ? svc.path : svc.renderUrl;
+                const targetUrl = getServiceLaunchUrl(svc);
+                const displayHost = isRender 
+                    ? svc.renderUrl.replace('https://', '') 
+                    : `${host}:${svc.port}`;
 
                 card.innerHTML = `
                     <div>
@@ -1103,8 +1190,8 @@
                         </div>
                         <div class="mesh-details">
                             <div class="detail-row">
-                                <span>Port / Host</span>
-                                <span>:${svc.port}</span>
+                                <span>Target Host</span>
+                                <span style="font-family: var(--font-mono); font-size: 0.75rem; color: #38bdf8;">${displayHost}</span>
                             </div>
                             <div class="detail-row">
                                 <span>Database</span>
@@ -1117,7 +1204,7 @@
                         </div>
                     </div>
                     <div class="mesh-actions">
-                        <a href="${targetUrl}" target="_blank" class="btn-launch">
+                        <a href="${targetUrl}" target="_blank" class="btn-launch" title="Launch ${svc.name} (${targetUrl})">
                             Launch UI
                             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </a>
@@ -1131,6 +1218,8 @@
         }
 
         async function refreshMeshHealth() {
+            const isRender = isRenderEnvironment();
+            const host = getAzureHost();
             for (let svc of SERVICES) {
                 const pingElem = document.getElementById('ping-' + svc.id);
                 if (!pingElem) continue;
@@ -1138,7 +1227,14 @@
 
                 const start = performance.now();
                 try {
-                    const testUrl = svc.id === 'gateway' ? '/actuator/health' : (svc.path ? svc.path : svc.renderUrl + '/actuator/health');
+                    let testUrl;
+                    if (svc.id === 'gateway') {
+                        testUrl = '/actuator/health';
+                    } else if (isRender) {
+                        testUrl = svc.renderUrl + '/actuator/health';
+                    } else {
+                        testUrl = `${window.location.protocol}//${host}:${svc.port}/actuator/health`;
+                    }
                     const res = await fetch(testUrl, { method: 'GET', mode: 'no-cors' });
                     const latency = Math.round(performance.now() - start);
                     pingElem.innerHTML = `<span style="color: #34d399;">${latency} ms</span>`;
@@ -1226,17 +1322,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            updateEnvironmentDisplay();
             renderMeshGrid();
             onSoapServiceChanged();
             refreshMeshHealth();
             loadAnalytics();
-
-            // Detect Azure VM vs Render
-            if (window.location.hostname.includes('onrender.com')) {
-                document.getElementById('envBadge').innerText = "Running on: Render Cloud Production";
-            } else {
-                document.getElementById('envBadge').innerText = "Running on: Azure VM / Enterprise Host (" + window.location.hostname + ")";
-            }
         });
     </script>
 </body>
