@@ -205,15 +205,28 @@
    <soapenv:Body><tns:${reqName}/></soapenv:Body>
 </soapenv:Envelope>`;
             try {
-                // Using the specific API Gateway URL provided for the Render deployment
                 const GATEWAY_URL = "https://api-gateway-wzqo.onrender.com";
                 const url = `${GATEWAY_URL}/${service}/ws`;
-                
+
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/xml' }, body: envelope });
-                if(!response.ok) return [];
+
+                if (!response.ok) {
+                    let faultDetail = '';
+                    try {
+                        const errText = await response.text();
+                        const errXml = new DOMParser().parseFromString(errText, 'text/xml');
+                        const faultStrings = errXml.getElementsByTagName('faultstring');
+                        if (faultStrings.length > 0) {
+                            faultDetail = ' — ' + faultStrings[0].textContent;
+                        }
+                    } catch (_) {}
+                    const errMsg = `[fetchOptions] HTTP ${response.status} from ${url}${faultDetail}`;
+                    console.error(errMsg);
+                    return { fetchError: true, label: `${service}` };
+                }
+
                 const text = await response.text();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(text, "text/xml");
+                const xml = new DOMParser().parseFromString(text, 'text/xml');
                 let nodes = [];
                 const allElements = xml.getElementsByTagName('*');
                 for (let i = 0; i < allElements.length; i++) {
@@ -228,11 +241,11 @@
                         }
                         return '';
                     };
-                    return { id: getText(extractId), label: extractLabel.map(l => getText(l)).join(' - ') };
+                    return { id: getText(extractId), label: extractLabel.map(l => getText(l)).filter(v => v).join(' — ') };
                 });
-            } catch(e) { 
-                console.error("Failed to fetch cross-service options.", e); 
-                return []; 
+            } catch(e) {
+                console.error(`[fetchOptions] Network error fetching /${service}/ws:`, e);
+                return { fetchError: true, label: `${service}` };
             }
         }
 
@@ -242,7 +255,7 @@
             for (let f of CFG.fields) {
                 const group = document.createElement('div');
                 group.className = 'form-group';
-                
+
                 if (f.type === 'select') {
                     group.innerHTML = `
                         <label for="${f.name}">${f.label}</label>
@@ -251,15 +264,23 @@
                         </select>
                     `;
                     container.appendChild(group);
-                    
-                    fetchOptions(f.sourceService, f.sourceReq, f.sourceNs, f.sourceTags, f.sourceId, f.sourceLabel).then(options => {
+
+                    fetchOptions(f.sourceService, f.sourceReq, f.sourceNs, f.sourceTags, f.sourceId, f.sourceLabel).then(result => {
                         const select = document.getElementById(f.name);
-                        select.innerHTML = `<option value="">Select ${f.label}</option>`;
-                        options.forEach(opt => {
-                            select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
-                        });
-                        if(options.length === 0) {
+                        if (!select) return;
+                        if (result && result.fetchError) {
+                            select.innerHTML = `<option value="">⚠ Failed to load ${f.label}</option>`;
+                            select.style.borderColor = '#ef4444';
+                            return;
+                        }
+                        const options = Array.isArray(result) ? result : [];
+                        if (options.length === 0) {
                             select.innerHTML = `<option value="">No data found</option>`;
+                        } else {
+                            select.innerHTML = `<option value="">Select ${f.label}</option>`;
+                            options.forEach(opt => {
+                                select.innerHTML += `<option value="${opt.id}">${opt.label}</option>`;
+                            });
                         }
                     });
                 } else {
