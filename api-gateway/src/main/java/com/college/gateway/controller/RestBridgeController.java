@@ -278,41 +278,39 @@ public class RestBridgeController {
 
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
+            factory.setNamespaceAware(false);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new StringReader(xml)));
 
-            for (String tag : targetTags) {
-                NodeList nodes = doc.getElementsByTagNameNS("*", tag);
-                if (nodes.getLength() == 0) {
-                    nodes = doc.getElementsByTagName(tag);
-                }
+            NodeList allElements = doc.getElementsByTagName("*");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Node n = allElements.item(i);
+                if (n.getNodeType() == Node.ELEMENT_NODE) {
+                    Element elem = (Element) n;
+                    String name = elem.getTagName();
+                    if (name.contains(":")) {
+                        name = name.substring(name.indexOf(":") + 1);
+                    }
 
-                for (int i = 0; i < nodes.getLength(); i++) {
-                    Node node = nodes.item(i);
-                    if (node.getNodeType() == Node.ELEMENT_NODE) {
-                        Element elem = (Element) node;
-                        // Avoid matching outer response element if named similarly
-                        if (elem.getLocalName() != null && elem.getLocalName().endsWith("Response")) {
-                            continue;
-                        }
-
+                    if (targetTags.contains(name) && !name.toLowerCase().endsWith("response")) {
                         Map<String, String> item = new LinkedHashMap<>();
-                        for (String field : fields) {
-                            NodeList childList = elem.getElementsByTagNameNS("*", field);
-                            if (childList.getLength() == 0) {
-                                childList = elem.getElementsByTagName(field);
-                            }
-                            if (childList.getLength() > 0) {
-                                item.put(field, childList.item(0).getTextContent().trim());
-                            } else {
-                                item.put(field, "");
+                        NodeList children = elem.getChildNodes();
+                        for (int j = 0; j < children.getLength(); j++) {
+                            Node child = children.item(j);
+                            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                                Element childElem = (Element) child;
+                                String fieldName = childElem.getTagName();
+                                if (fieldName.contains(":")) {
+                                    fieldName = fieldName.substring(fieldName.indexOf(":") + 1);
+                                }
+                                item.put(fieldName, childElem.getTextContent().trim());
                             }
                         }
-                        results.add(item);
+                        if (!item.isEmpty()) {
+                            results.add(item);
+                        }
                     }
                 }
-                if (!results.isEmpty()) break;
             }
         } catch (Exception ignored) {}
 
